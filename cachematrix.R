@@ -8,27 +8,26 @@
 # these 'special' matrices can be useful in situations where there's the need to
 # repeatedly calculate their inverse.
 
-makeCacheMatrix <- function(x = matrix()) {
+makeCacheMatrix <- function(mat = matrix()) {
   # The cache is always empty in the beginning
-  m <- NULL
+  cache <- NULL
 
-  # Define the matrix proper. Everytime we (re-)define the matrix, the cache is
-  # cleared to force recalculation of the inverse.
-  set <- function(y) {
-    x <<- y
-    m <<- NULL
+  # Create the matrix
+  set <- function(x) {
+    mat <<- x
+    cache <<- NULL    # (re-)defining the matrix (`mat`) forces computation of inverse
   }
 
-  # Simply return the matrix
-  get <- function() x
+  # Get the matrix
+  get <- function() mat
 
-  # Cache the inverse of the matrx in variable `m`.
-  setinv <- function(inv) m <<- inv
+  # Store the inverted matrix in cache
+  setinv <- function(inv) cache <<- inv
 
-  # Return the contents of the cache (can be an inverted matrix or NULL)
-  getinv <- function() m
+  # Get the cache contents (can be an inverted matrix or NULL)
+  getinv <- function() cache
 
-  # Now we return a list with 4 elements ('set', 'get', 'setinv' and 'getinv') and
+  # Now we return a list with 4 elements (`set`, `get`, `setinv` and `getinv`) and
   # link them to the appropriate function defined above.
   list(set = set,
        get = get,
@@ -41,24 +40,22 @@ makeCacheMatrix <- function(x = matrix()) {
 # If the inverse is already cached (was previously computed), it just returns it.
 # Otherwise, the inverse matrix is computed, saved to the cache and returned.
 #
-# Note: we assume matrices passed as argument are invertible.
+# Assumption: every matrix passed as argument is square and invertible
 
-cacheSolve <- function(x, ...) {
+cacheSolve <- function(mat, ...) {
   # Get the contents of the cache
-  m <- x$getinv()
+  cache <- mat$getinv()
 
-  if (!is.null(m)) {
-    # If the cache is not empty (ie. is not NULL)), print a message signaling we're
-    # returning the cached matrix, return it and exit the function at this point.
+  # If the cache isn't empty, return the cached inverted matrix and stop
+  if (!is.null(cache)) {
     message("getting cached data")
-    return(m)
+    return(cache)
   }
 
-  # If, on the other hand, the cache is empty (m == NULL), run `solve` on the original
-  # matrix data (obtained via `x$get()`) and store it in the cache (via `x$setinv(n))`).
-  m <- solve(x$get(), ...)
-  x$setinv(m)
+  # If the cache is empty, compute the inverse of the matrix and cache it.
+  cache <- solve(mat$get(), ...)
+  mat$setinv(cache)
 
   # Return the computed inverse.
-  m
+  cache
 }
