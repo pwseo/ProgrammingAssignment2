@@ -12,10 +12,8 @@ makeCacheMatrix <- function(x = matrix()) {
   # The cache is always empty in the beginning
   m <- NULL
 
-  # This function allows the programmer to set the content of the matrix (ie.
-  # replace the current matrix with a new one).
-  # Every time the matrix is replaced, the inverse matrix must be recalculated,
-  # and so we empty the cache (set it to NULL)
+  # Define the matrix proper. Everytime we (re-)define the matrix, the cache is
+  # cleared to force recalculation of the inverse.
   set <- function(y) {
     x <<- y
     m <<- NULL
@@ -24,13 +22,10 @@ makeCacheMatrix <- function(x = matrix()) {
   # Simply return the matrix
   get <- function() x
 
-  # Cache the `inv` matrix in `m`
-  # `inv` is the result of running `solve(x)` (handled by the `cacheSolve`
-  # function below).
+  # Cache the inverse of the matrx in variable `m`.
   setinv <- function(inv) m <<- inv
 
-  # Simply return the inverted matrix, if it's cached.
-  # If the cache is empty, return NULL
+  # Return the contents of the cache (can be an inverted matrix or NULL)
   getinv <- function() m
 
   # Now we return a list with 4 elements ('set', 'get', 'setinv' and 'getinv') and
@@ -42,19 +37,16 @@ makeCacheMatrix <- function(x = matrix()) {
 }
 
 
-# Function `cacheSolve`
-# This function takes a special matrix (as created by the `makeCacheMatrix` function
-# defined above) and returns its inverse.
-# Since these special matrices can cache their inverse, this function first tries to
-# return the cached result (thus eliminating the need to compute the result).
-# If, however, the cache is empty, `cacheSolve` will compute the inverse (via the
-# `solve` function, store the result in the cache and return it.
+# `cacheSolve` returns the inverse of a matrix created via `makeCacheMatrix`.
+# If the inverse is already cached (was previously computed), it just returns it.
+# Otherwise, the inverse matrix is computed, saved to the cache and returned.
 #
 # Note: we assume matrices passed as argument are invertible.
 
 cacheSolve <- function(x, ...) {
-  # Get the cache content
+  # Get the contents of the cache
   m <- x$getinv()
+
   if (!is.null(m)) {
     # If the cache is not empty (ie. is not NULL)), print a message signaling we're
     # returning the cached matrix, return it and exit the function at this point.
